@@ -1,0 +1,731 @@
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\app.js
+import Masonry from "masonry-layout";
+import imagesLoaded from "imagesloaded";
+
+const apiKey = `r5b5tUDDx-kUxFijB6yMo0tEnyV0K-iM6j8HdlZw990`;
+let galeria = document.querySelector("#galeria");
+let busqueda = ``;
+let pagina = 1;
+let cargando = false;
+let msnry;
+
+export async function cargarGaleria() {
+  let url = `https://api.unsplash.com/photos/random/?client_id=${apiKey}`;
+
+  if (cargando) return;
+  cargando = true;
+
+  if (busqueda === ``) {
+    url = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=40`;
+  } else {
+    url = `https://api.unsplash.com/search/photos/?client_id=${apiKey}&query=${busqueda}&page=${pagina}&per_page=20`;
+  }
+
+  try {
+    const respuesta = await fetch(url);
+    const data = await respuesta.json();
+    let imagenes = [];
+    if (busqueda === ``) {
+      imagenes = data;
+    } else {
+      imagenes = data.results;
+    }
+
+    // Crear un array de promesas para cada imagen
+    const promises = imagenes.map((imagen) => {
+      return new Promise((resolve) => {
+        const pin = document.createElement("div");
+        pin.classList.add("pin", "grid-item");
+
+        const pin_img = document.createElement("div");
+        pin_img.classList.add("pin-img");
+        pin.appendChild(pin_img);
+
+        const img = document.createElement("img");
+        img.src = imagen.urls.small;
+        img.alt = imagen.alt_description || "Imagen de Unsplash";
+        pin_img.appendChild(img);
+
+        const foto_perfil = document.createElement("img");
+        foto_perfil.src = imagen.user.profile_image.medium;
+        foto_perfil.alt = imagen.user.name;
+        foto_perfil.classList.add("foto-perfil");
+        pin.appendChild(foto_perfil);
+
+        const infoBloque = document.createElement("div");
+        infoBloque.classList.add("info-bloque");
+
+        const perfil_nombre = document.createElement("p");
+        perfil_nombre.textContent = `${imagen.user.name}`;
+        perfil_nombre.classList.add("perfil-nombre");
+        infoBloque.appendChild(perfil_nombre);
+
+        const fecha = document.createElement("p");
+        fecha.textContent = `Fecha de subida: ${new Date(
+          imagen.updated_at
+        ).toLocaleDateString()}`;
+        fecha.classList.add("fecha");
+        infoBloque.appendChild(fecha);
+
+        const overlay = document.createElement("div");
+        overlay.classList.add("overlay");
+
+        const btnDesc = document.createElement("button");
+        btnDesc.classList.add("btn", "btn-descargas");
+        btnDesc.innerHTML = `💾 ${imagen.downloads}`;
+        overlay.appendChild(btnDesc);
+
+        const btnLike = document.createElement("button");
+        btnLike.classList.add("btn", "btn-likes");
+        btnLike.innerHTML = `🧡 ${imagen.likes}`;
+        overlay.appendChild(btnLike);
+
+        const btnVisitar = document.createElement("button");
+        btnVisitar.classList.add("btn", "btn-visitar");
+        btnVisitar.innerHTML = "Visitar";
+
+        btnVisitar.addEventListener("click", () => {
+          window.open(imagen.links.html, "_blank");
+        });
+        overlay.appendChild(btnVisitar);
+        pin_img.appendChild(overlay);
+        pin.appendChild(infoBloque);
+
+        // Añadir el pin al DOM primero
+        galeria.appendChild(pin);
+
+        // Esperar a que las imágenes se carguen
+        imagesLoaded(pin, () => {
+          resolve();
+        });
+      });
+    });
+
+    // Esperar a que todas las imágenes se carguen
+    await Promise.all(promises);
+
+    // Inicializar o actualizar Masonry después de que todas las imágenes estén cargadas
+    if (!msnry) {
+      msnry = new Masonry(galeria, {
+        itemSelector: ".grid-item",
+        columnWidth: ".grid-sizer",
+        percentPosition: true,
+        gutter: 10,
+      });
+    } else {
+      msnry.reloadItems();
+      msnry.layout();
+    }
+
+    pagina++;
+  } catch (error) {
+    console.error("Error al cargar la galería:", error);
+  } finally {
+    cargando = false;
+  }
+}
+
+export function iniBuscador() {
+  const btnBuscar = document.querySelector(".btnBuscar");
+  const inputBusqueda = document.querySelector(".busqueda");
+
+  if (!btnBuscar || !inputBusqueda) return;
+
+  btnBuscar.addEventListener("click", () => {
+    galeria.innerHTML = `<div class="grid-sizer"></div>`;
+    pagina = 1;
+    if (msnry) {
+      msnry.destroy();
+      msnry = null;
+    }
+    busqueda = inputBusqueda.value.trim();
+    cargarGaleria();
+    inputBusqueda.value = "";
+  });
+
+  inputBusqueda.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") btnBuscar.click();
+  });
+}
+
+export function scrollInfinito() {
+  const centinela = document.querySelector("#centinela");
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !cargando) {
+          cargarGaleria();
+        }
+      });
+    },
+    {
+      rootMargin: "500px",
+      threshold: 0.1,
+    }
+  );
+
+  observer.observe(centinela);
+}
+
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\galeria.scss
+@use 'variables' as *;
+@use 'sass:color';
+@use 'mixins' as *;
+
+#centinela {
+  width: 100%;
+  height: $centinela-height;
+}
+
+#galeria {
+  display: block;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 100%;
+
+  .grid-sizer,
+  .grid-item {
+    width: calc(50% - 5px); // 2 columnas en móvil con gap de 10px
+  }
+
+  .pin {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border-radius: $radius-base;
+    background-color: $white;
+
+    .pin-img {
+      position: relative;
+      border-radius: $radius-base;
+      overflow: hidden;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .overlay {
+      @include overlay($color-overlay, 0);
+      @include flexbox;
+      transition: opacity $transition-default;
+    }
+
+    &:hover .overlay {
+      opacity: 1;
+    }
+
+    .btn {
+      @include button($spacing-unit-sm, $spacing-unit * 0.8);
+      font-size: $font-size-base * 0.8;
+      font-weight: $font-weight-bold * 0.8;
+    }
+
+    .btn-visitar {
+      background-color: $color-visitar;
+      color: $white;
+      border-radius: $radius-base;
+      cursor: pointer;
+
+      @include hover-effect(background-color, color.adjust($color-visitar, $lightness: -10%));
+    }
+
+    .btn-descargas,
+    .btn-likes {
+      @include icon-button($btn-size);
+      @include absolute($top: $spacing-unit-sm);
+      background-color: $white;
+    }
+
+    .btn-descargas {
+      left: $spacing-unit-sm;
+    }
+
+    .btn-likes {
+      right: $spacing-unit-sm;
+    }
+
+    .foto-perfil {
+      width: $btn-size * 1.4;
+      height: $btn-size * 1.4;
+      border-radius: $radius-rounded;
+      overflow: hidden;
+      @include absolute($left: 32%, $bottom: 4em);
+    }
+
+    .info-bloque {
+      display: block;
+      width: 100%;
+      padding-bottom: 1.5rem;
+      padding-top: 1.5rem;
+    }
+
+    .perfil-nombre,
+    .fecha {
+      display: block;
+      text-align: center;
+      font-size: $font-size-base * 0.8;
+      font-weight: $font-weight-bold * 0.8;
+    }
+  }
+
+  @include responsive(md) {
+    .grid-sizer,
+    .grid-item {
+      width: calc(25% - 7.5px); // 4 columnas en tablet
+    }
+
+    .btn {
+      @include button($spacing-unit * 0.8, $spacing-unit * 1.2);
+      font-size: $font-size-base;
+    }
+
+    .btn-descargas,
+    .btn-likes {
+      @include icon-button($btn-size * 1.2);
+      @include absolute($top: $spacing-unit * 0.8);
+    }
+  }
+
+  @include responsive(lg) {
+    .grid-sizer,
+    .grid-item {
+      width: calc(20% - 8px); // 5 columnas en desktop
+    }
+  }
+}
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\main.js
+import { cargarGaleria } from "./app.js";
+import { scrollInfinito } from "./app.js";
+import { cargarNavbar } from "./navbar.js";
+import { iniBuscador } from "./app.js";
+import "./style.scss";
+
+document.addEventListener(`DOMContentLoaded`, () => {
+  cargarGaleria();
+  cargarNavbar();
+  iniBuscador();
+  scrollInfinito();
+});
+
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\mixins.scss
+@use 'variables' as *;
+
+@mixin flexbox($justify: center, $align: center, $direction: row, $gap: 0) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+
+  @if $gap >0 {
+    gap: $gap;
+  }
+}
+
+@mixin absolute($top: null, $right: null, $bottom: null, $left: null) {
+  position: absolute;
+
+  @if $top !=null {
+    top: $top;
+  }
+
+  @if $right !=null {
+    right: $right;
+  }
+
+  @if $bottom !=null {
+    bottom: $bottom;
+  }
+
+  @if $left !=null {
+    left: $left;
+  }
+}
+
+@mixin hover-effect($property, $value, $transition: $transition-default) {
+  transition: $property $transition;
+
+  &:hover {
+    #{$property}: $value;
+  }
+}
+
+@mixin button($padding-y, $padding-x, $bg-color: $white, $text-color: $black, $radius: $radius-base) {
+  padding: $padding-y $padding-x;
+  border: none;
+  border-radius: $radius;
+  background-color: $bg-color;
+  color: $text-color;
+  cursor: pointer;
+}
+
+@mixin icon-button($size, $radius: $radius-rounded) {
+  width: $size;
+  height: $size;
+  border-radius: $radius;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+@mixin responsive($breakpoint) {
+  @if $breakpoint ==sm {
+    @media (min-width: $bp-sm) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==md {
+    @media (min-width: $bp-md) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==lg {
+    @media (min-width: $bp-lg) {
+      @content;
+    }
+  }
+}
+
+@mixin overlay($bg-color: $color-overlay, $opacity: 0) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: $bg-color;
+  opacity: $opacity;
+}
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\navbar.js
+import "./app.js";
+
+export function cargarNavbar() {
+  const navbar = document.getElementById("navbar");
+
+  if (!navbar) {
+    console.error('No se encontró el elemento con ID "navbar"');
+    return;
+  }
+
+  const navLeft = document.createElement("div");
+  navLeft.className = "nav-left";
+
+  // Logo
+  const logo = document.createElement("img");
+  logo.src = "./src/pinterest.svg";
+  logo.className = "logo";
+  logo.alt = "Pinterest Logo";
+  navLeft.appendChild(logo);
+
+  const menuButtons = [
+    { name: "Inicio", active: true },
+    { name: "Explorar", active: false },
+    { name: "Crear", active: false },
+  ];
+
+  menuButtons.forEach((btn) => {
+    const button = document.createElement("button");
+    button.className = "nav-button" + (btn.active ? " active" : "");
+    button.textContent = btn.name;
+    button.addEventListener("click", function () {
+      document.querySelectorAll(".nav-button").forEach((b) => {
+        b.classList.remove("active");
+      });
+      this.classList.add("active");
+      if (btn.name === "Inicio") {
+        cargarGaleria();
+      }
+    });
+    navLeft.appendChild(button);
+  });
+
+  const searchContainer = document.createElement("div");
+  searchContainer.className = "search-container";
+
+  const searchIcon = document.createElement("button");
+  searchIcon.className = "btnBuscar";
+  searchIcon.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+  searchContainer.appendChild(searchIcon);
+
+  const searchBar = document.createElement("input");
+  searchBar.type = "text";
+  searchBar.className = "busqueda";
+  searchBar.placeholder = "Buscar";
+  searchContainer.appendChild(searchBar);
+
+  const navRight = document.createElement("div");
+  navRight.className = "nav-right";
+
+  const iconButtons = [
+    {
+      name: "Notificaciones",
+      icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
+    },
+    {
+      name: "Mensajes",
+      icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
+    },
+  ];
+
+  iconButtons.forEach((btn) => {
+    const button = document.createElement("button");
+    button.className = "icon-button social";
+    button.setAttribute("aria-label", btn.name);
+    button.innerHTML = btn.icon;
+    navRight.appendChild(button);
+  });
+
+  const profileContainer = document.createElement("div");
+  profileContainer.className = "profile-container";
+
+  const profileButton = document.createElement("button");
+  profileButton.className = "icon-button";
+  profileButton.setAttribute("aria-label", "Perfil");
+  profileButton.innerHTML =
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+  profileContainer.appendChild(profileButton);
+
+  const dropdown = document.createElement("div");
+  dropdown.className = "profile-dropdown";
+
+  const dropdownItems = [
+    { name: "Mi perfil", url: "#" },
+    { name: "Configuración", url: "#" },
+    { divider: true },
+    { name: "Ayuda", url: "#" },
+    { name: "Cerrar sesión", url: "#" },
+  ];
+
+  dropdownItems.forEach((item) => {
+    if (item.divider) {
+      const divider = document.createElement("div");
+      divider.className = "dropdown-divider";
+      dropdown.appendChild(divider);
+    } else {
+      const link = document.createElement("a");
+      link.className = "dropdown-item";
+      link.href = item.url;
+      link.textContent = item.name;
+      dropdown.appendChild(link);
+    }
+  });
+
+  profileContainer.appendChild(dropdown);
+  navRight.appendChild(profileContainer);
+
+  profileButton.addEventListener("click", function () {
+    dropdown.classList.toggle("active");
+  });
+
+  document.addEventListener("click", function (event) {
+    if (!profileContainer.contains(event.target)) {
+      dropdown.classList.remove("active");
+    }
+  });
+
+  navbar.appendChild(navLeft);
+  navbar.appendChild(searchContainer);
+  navbar.appendChild(navRight);
+
+  return navbar;
+}
+
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\navbar.scss
+@use 'variables' as *;
+@use 'mixins' as *;
+
+#navbar {
+  @include flexbox(space-between, center);
+  padding: $spacing-unit-sm;
+  width: 100%;
+
+
+  .nav-left {
+    @include flexbox(space-between, center, row, $spacing-unit);
+
+    .logo {
+      width: 2em;
+    }
+
+    .nav-button {
+      display: none;
+      border: none;
+      background-color: transparent;
+      padding: $spacing-unit-sm $spacing-unit;
+      border-radius: $radius-base;
+      font-weight: 600;
+      font-size: $font-size-base;
+      cursor: pointer;
+      margin-right: $spacing-unit * 0.8;
+
+      &:hover {
+        background-color: $white;
+      }
+
+      &.active {
+        background-color: $black;
+        color: $white;
+      }
+    }
+  }
+
+  .search-container {
+    flex: 1 1 auto;
+    position: relative;
+    margin: $spacing-unit * 0.2;
+
+    .busqueda {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border-radius: 24px;
+      border: none;
+      background-color: #efefef;
+      font-size: $font-size-base;
+
+    }
+
+    .btnBuscar {
+      @include absolute($left: 12px, $top: 50%);
+      transform: translateY(-50%);
+      background-color: transparent;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: #555;
+      transition: background-color 0.2s ease, color 0.2s ease;
+
+      &:hover {
+        background-color: #efefef;
+        color: $black;
+      }
+
+      &:active {
+        background-color: #e0e0e0;
+      }
+    }
+  }
+
+  .nav-right {
+    @include flexbox(center, center, row, $spacing-unit);
+
+    .icon-button {
+      @include icon-button(44px);
+      margin-left: 4px;
+
+      @include hover-effect(background-color, #f0f0f0);
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+
+    .social {
+      display: none;
+    }
+
+    .profile-container {
+      position: relative;
+
+      .profile-dropdown {
+        @include absolute($top: 54px, $right: 0);
+        width: 280px;
+        background-color: $white;
+        border-radius: 8px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+        padding: 12px 0;
+        display: none;
+
+        &.active {
+          display: block;
+        }
+
+        .dropdown-item {
+          padding: 12px $spacing-unit;
+          cursor: pointer;
+          display: block;
+          text-decoration: none;
+          color: $black;
+          font-size: 14px;
+
+          &:hover {
+            background-color: #f0f0f0;
+          }
+        }
+
+        .dropdown-divider {
+          height: 1px;
+          background-color: #efefef;
+          margin: 8px 0;
+        }
+      }
+    }
+  }
+
+  @include responsive(md) {
+    .nav-left {
+      .nav-button {
+        display: block;
+      }
+    }
+
+    .nav-right {
+      .social {
+        display: block;
+      }
+    }
+  }
+}
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\style.scss
+@import url('navbar.scss');
+@import url('galeria.scss');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  background: white;
+  color: #1d1d1d;
+}
+
+// File: c:\Users\gabi_\Desktop\prConBracho\proyecto2 - copia\src\variables.scss
+$spacing-unit: 1rem;
+$spacing-unit-sm: 0.5rem;
+$radius-base: 1rem;
+$radius-rounded: 50%;
+$transition-default: 0.2s ease;
+
+$white: #fff;
+$black: #000;
+$color-overlay: rgba(0, 0, 0, 0.5);
+$color-visitar: #f00;
+
+$font-size-base: 1rem;
+$font-weight-bold: 600;
+
+$btn-size: 44px;
+$centinela-height: 1px;
+
+$bp-sm: 480px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+

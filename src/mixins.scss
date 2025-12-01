@@ -1,0 +1,91 @@
+@use 'variables' as *;
+
+@mixin flexbox($justify: center, $align: center, $direction: row, $gap: 0) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+
+  @if $gap >0 {
+    gap: $gap;
+  }
+}
+
+@mixin absolute($top: null, $right: null, $bottom: null, $left: null) {
+  position: absolute;
+
+  @if $top !=null {
+    top: $top;
+  }
+
+  @if $right !=null {
+    right: $right;
+  }
+
+  @if $bottom !=null {
+    bottom: $bottom;
+  }
+
+  @if $left !=null {
+    left: $left;
+  }
+}
+
+@mixin hover-effect($property, $value, $transition: $transition-default) {
+  transition: $property $transition;
+
+  &:hover {
+    #{$property}: $value;
+  }
+}
+
+@mixin button($padding-y, $padding-x, $bg-color: $white, $text-color: $black, $radius: $radius-base) {
+  padding: $padding-y $padding-x;
+  border: none;
+  border-radius: $radius;
+  background-color: $bg-color;
+  color: $text-color;
+  cursor: pointer;
+}
+
+@mixin icon-button($size, $radius: $radius-rounded) {
+  width: $size;
+  height: $size;
+  border-radius: $radius;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+@mixin responsive($breakpoint) {
+  @if $breakpoint ==sm {
+    @media (min-width: $bp-sm) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==md {
+    @media (min-width: $bp-md) {
+      @content;
+    }
+  }
+
+  @else if $breakpoint ==lg {
+    @media (min-width: $bp-lg) {
+      @content;
+    }
+  }
+}
+
+@mixin overlay($bg-color: $color-overlay, $opacity: 0) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: $bg-color;
+  opacity: $opacity;
+}

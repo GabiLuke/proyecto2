@@ -1,7 +1,7 @@
 import Masonry from "masonry-layout";
 import imagesLoaded from "imagesloaded";
 
-const apiKey = `r5b5tUDDx-kUxFijB6yMo0tEnyV0K-iM6j8HdlZw990`;
+const apiKey = import.meta.env.VITE_UNSPLASH_API_KEY;
 let galeria = document.querySelector("#galeria");
 let busqueda = ``;
 let pagina = 1;
@@ -30,7 +30,6 @@ export async function cargarGaleria() {
       imagenes = data.results;
     }
 
-    // Crear un array de promesas para cada imagen
     const promises = imagenes.map((imagen) => {
       return new Promise((resolve) => {
         const pin = document.createElement("div");
@@ -90,20 +89,16 @@ export async function cargarGaleria() {
         pin_img.appendChild(overlay);
         pin.appendChild(infoBloque);
 
-        // Añadir el pin al DOM primero
         galeria.appendChild(pin);
 
-        // Esperar a que las imágenes se carguen
         imagesLoaded(pin, () => {
           resolve();
         });
       });
     });
 
-    // Esperar a que todas las imágenes se carguen
     await Promise.all(promises);
 
-    // Inicializar o actualizar Masonry después de que todas las imágenes estén cargadas
     if (!msnry) {
       msnry = new Masonry(galeria, {
         itemSelector: ".grid-item",
@@ -133,11 +128,11 @@ export function iniBuscador() {
   btnBuscar.addEventListener("click", () => {
     galeria.innerHTML = `<div class="grid-sizer"></div>`;
     pagina = 1;
+    busqueda = inputBusqueda.value.trim();
     if (msnry) {
       msnry.destroy();
       msnry = null;
     }
-    busqueda = inputBusqueda.value.trim();
     cargarGaleria();
     inputBusqueda.value = "";
   });
@@ -165,4 +160,16 @@ export function scrollInfinito() {
   );
 
   observer.observe(centinela);
+}
+
+// Función para resetear a la vista inicial
+export function resetearGaleria() {
+  galeria.innerHTML = `<div class="grid-sizer"></div>`;
+  pagina = 1;
+  busqueda = "";
+  if (msnry) {
+    msnry.destroy();
+    msnry = null;
+  }
+  cargarGaleria();
 }

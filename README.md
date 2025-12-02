@@ -27,14 +27,16 @@ Instala las cosas necesarias: npm install
 2. ¡Muy Importante! La API Key 
 Para que carguen las fotos, necesitas una API Key de Unsplash (es gratis).
    Consigue una key en Unsplash Developers.
-   Abre el archivo src/app.js y pega tu clave donde dice:
-   JavaScriptconst apiKey = `TU_API_KEY_AQUI`; // ¡Pon tu clave aquí!
+   Crea un archivo .env y pones tu api key:
+   VITE_UNSPLASH_API_KEY = `TU_API_KEY_AQUI`; // ¡Pon tu clave aquí!
 3. ¡A desarrollar!
 Inicia el servidor:  npm run dev
 Abre la URL que te diga Vite (normalmente http://localhost:5173) en tu navegador.
 
 Estructura del Código
-Para que sepas dónde está cada cosa:proyecto2/
+Para que sepas dónde está cada cosa:
+
+proyecto2/
 ├── src/
 │   ├── app.js              # La magia de JS (API, Masonry, Scroll)
 │   ├── style.scss          # Estilos globales

@@ -1,20 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Web Page</title>
-    <link rel="stylesheet" href="style.css" />
-    <script type="module" src="src/main.js" defer></script>
-  </head>
-  <body>
-    <header id="header">
-      <nav id="navbar"></nav>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Meta etiquetas SEO -->
+    <meta name="description" content="Galería de imágenes inspirada en Pinterest. Explora y descubre miles de imágenes hermosas de Unsplash.">
+    <meta name="keywords" content="galería, imágenes, fotos, pinterest, unsplash">
+    <meta name="author" content="Gabriel">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Pinterest Clone - Galería de Imágenes">
+    <meta property="og:description" content="Explora miles de imágenes hermosas en nuestra galería inspirada en Pinterest">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pinterest Clone - Galería de Imágenes">
+    
+    <title>Pinterest Clone - Galería de Imágenes</title>
+</head>
+<body>
+    <header>
+        <nav id="navbar"></nav>
     </header>
-    <div id="galeria" class="masonry-container">
-      <div class="grid-sizer"></div>
-    </div>
-
-    <div id="centinela"></div>
-  </body>
+    
+    <main id="main-content">
+        <div id="galeria">
+            <div class="grid-sizer"></div>
+        </div>
+        <div id="centinela"></div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Pinterest Clone - Proyecto Educativo</p>
+    </footer>
+    
+    <script type="module" src="/src/main.js"></script>
+</body>
 </html>

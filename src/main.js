@@ -1,12 +1,14 @@
-import { cargarGaleria } from "./app.js";
-import { scrollInfinito } from "./app.js";
-import { cargarNavbar } from "./navbar.js";
-import { iniBuscador } from "./app.js";
-import "./style.scss";
+import {
+  cargarGaleria,
+  scrollInfinito,
+  iniBuscador,
+} from "./components/galeria/galeria.js";
+import { cargarNavbar } from "./components/navbar/navbar.js";
+import "./styles/style.scss";
 
 document.addEventListener(`DOMContentLoaded`, () => {
-  cargarGaleria();
   cargarNavbar();
   iniBuscador();
+  cargarGaleria();
   scrollInfinito();
 });

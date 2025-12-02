@@ -1,4 +1,4 @@
-import "./app.js";
+import { resetearGaleria } from "../galeria/galeria.js";
 
 export function cargarNavbar() {
   const navbar = document.getElementById("navbar");
@@ -11,11 +11,13 @@ export function cargarNavbar() {
   const navLeft = document.createElement("div");
   navLeft.className = "nav-left";
 
-  // Logo
+  // Logo con funcionalidad de reseteo
   const logo = document.createElement("img");
-  logo.src = "./src/pinterest.svg";
+  logo.src = "/src/assets/pinterest.svg";
   logo.className = "logo";
   logo.alt = "Pinterest Logo";
+  logo.style.cursor = "pointer";
+  logo.addEventListener("click", resetearGaleria);
   navLeft.appendChild(logo);
 
   const menuButtons = [
@@ -34,7 +36,7 @@ export function cargarNavbar() {
       });
       this.classList.add("active");
       if (btn.name === "Inicio") {
-        cargarGaleria();
+        resetearGaleria();
       }
     });
     navLeft.appendChild(button);

@@ -1,11 +1,10 @@
-@use 'variables' as *;
-@use 'mixins' as *;
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 #navbar {
   @include flexbox(space-between, center);
   padding: $spacing-unit-sm;
   width: 100%;
-
 
   .nav-left {
     @include flexbox(space-between, center, row, $spacing-unit);
@@ -48,7 +47,6 @@
       border: none;
       background-color: #efefef;
       font-size: $font-size-base;
-
     }
 
     .btnBuscar {

@@ -1,6 +1,6 @@
-@use 'variables' as *;
+@use '../../styles/variables' as *;
 @use 'sass:color';
-@use 'mixins' as *;
+@use '../../styles/mixins' as *;
 
 #centinela {
   width: 100%;
@@ -15,7 +15,7 @@
 
   .grid-sizer,
   .grid-item {
-    width: calc(50% - 5px); // 2 columnas en móvil con gap de 10px
+    width: calc(50% - 5px);
   }
 
   .pin {
@@ -106,7 +106,7 @@
   @include responsive(md) {
     .grid-sizer,
     .grid-item {
-      width: calc(25% - 7.5px); // 4 columnas en tablet
+      width: calc(25% - 7.5px);
     }
 
     .btn {
@@ -124,7 +124,7 @@
   @include responsive(lg) {
     .grid-sizer,
     .grid-item {
-      width: calc(20% - 8px); // 5 columnas en desktop
+      width: calc(20% - 8px);
     }
   }
 }

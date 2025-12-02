@@ -1,7 +1,7 @@
-@import url('variables.scss');
-@import url('mixins.scss');
-@import '../components/navbar/navbar.scss';
-@import '../components/galeria/galeria.scss';
+@use 'variables' as *;
+@use 'mixins' as *;
+@use '../components/navbar/navbar.scss';
+@use '../components/galeria/galeria.scss';
 
 * {
   margin: 0;
